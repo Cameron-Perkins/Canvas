@@ -1,3 +1,6 @@
+#Cameron Anthony Alexander Perkins
+# This is a turtle that is designed to make a basic fract
+
 import turtle
 from turtle import Screen
 import random
