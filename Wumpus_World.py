@@ -13,61 +13,108 @@ matrix[10][19] = "G"
 # The second parameter defaults to an empty list.
 # The function return a list of valid tiles.
 
+#This is the wumpus the horrific monster the player must avoid
+class Wumpus:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.kill = False
+    
+    def Move(self, x, y, matrix):
+        x1 = self.x
+        x2 = self.y
+        self.x+=x
+        self.y+=y
+        # This check if you are about to step into the void. Here if the tile you want to step into is out side the matrix or into a void which is zero the program will return you to the previous square.
+        if self.y > len(matrix)-1 or self.x > len(matrix[0])-1 or self.y < 0 or self.x < 0:
+            self.x = x1
+            self.y = x2
+
+    def Actions(self, direction, matrix, prev="E"):
+        matrix[self.y][self.x] = prev
+        direction = rand.randint(0,7)
+        print('direction is ',direction)
+        if direction == 0:
+            self.Move(0,-1,matrix)
+        elif direction == 1:
+            self.Move(0,1,matrix)
+        elif direction == 2:
+            self.Move(1,0,matrix)
+        elif direction == 3:
+            self.Move(-1,0,matrix)
+        elif direction == 4:
+            self.Move(-1,-1,matrix)
+        elif direction == 5:
+            self.Move(1,-1,matrix)
+        elif direction == 6:
+            self.Move(-1,1,matrix)
+        elif direction == 7:
+            self.Move(1,1,matrix)
+
+
+        curr = matrix[self.y][self.x]
+        matrix[self.y][self.x] = "W"
+        print(self.x, self.y)
+        return matrix, curr
+
 class Jack:
     def __init__(self,x=0,y=0):
         self.x = x
         self.y = y
         self.gold = False
     
-    def pick_up_gold_or_end(self, matrix):
-        print(self.x == 0 and self.y == 0 and self.gold == True)
-        print(self.x == 0 and self.y == 0)
-        print(self.gold == True)
-
-        if matrix[self.y][self.x] == "G":
+    def pick_up_gold_or_end(self, matrix, curr):
+        if curr == "G":
             self.gold = True
         if self.x == 0 and self.y == 0 and self.gold == True:
             print("You win!")
         elif self.gold == True and (player.x == 0 or player.y == 0):
             print("Have gold not at entrence")
+
+    # This function moves the player to a position, and check if the players move is valid. If it is not valid is places the player in original loacation and prints a message saying to try again.
+    def Move(self, x, y, matrix):
+        x1 = self.x
+        x2 = self.y
+        self.x+=x
+        self.y+=y
+        # This check if you are about to step into the void. Here if the tile you want to step into is out side the matrix or into a void which is zero the program will return you to the previous square.
+        if self.y > len(matrix)-1 or self.x > len(matrix[0])-1 or self.y < 0 or self.x < 0 or matrix[self.y][self.x] == 0:
+            self.x = x1
+            self.y = x2
+            print("You tried to step into the void missed move")
+
         
-    def move(self, direction, matrix):
-        print(matrix[self.y][self.x])
-        if matrix[self.y][self.x] == "G":
-            self.gold = True
-        matrix[self.y][self.x] = "P"
-        matrix[self.y][self.x] = "E"
+    def Actions(self, direction, matrix, prev="E"):
+        matrix[self.y][self.x] = prev
         if direction == "n":
-            self.y += 1
+            self.Move(0,-1,matrix)
         elif direction == "s":
-            self.y -= 1
+            self.Move(0,1,matrix)
         elif direction == "e":
-            self.x += 1
+            self.Move(1,0,matrix)
         elif direction == "w":
-            self.x -= 1
+            self.Move(-1,0,matrix)
         elif direction == "nw":
-            self.y += 1
-            self.x -= 1
+            self.Move(-1,-1,matrix)
         elif direction == "ne":
-            self.y += 1
-            self.x += 1
+            self.Move(1,-1,matrix)
         elif direction == "sw":
-            self.y -= 1
-            self.x -= 1
+            self.Move(-1,1,matrix)
         elif direction == "se":
-            self.y -= 1
-            self.x += 1
+            self.Move(1,1,matrix)
         elif direction == "p":
-            print("in")
-            self.pick_up_gold_or_end(matrix)
-        print(self.x, self.y)
-        return matrix
+            if prev == "G":
+                print("Picked up gold.")
+                self.gold = True
+                matrix[self.y][self.x] = "E"
+            if self.gold == True and (self.x == 0 and self.y == 0):
+                print("You win!")
+
+        curr = matrix[self.y][self.x]
+        matrix[self.y][self.x] = "P"
+        return matrix, curr
 
 
-class Wumpus:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
 
 def generate_valid_tiles(t, previous_tiles=[]):
     tiles = [[t[0]-1,t[1]-1], [t[0]-1,t[1]], [t[0]-1,t[1]+1], [t[0],t[1]-1], [t[0],t[1]+1], [t[0]+1,t[1]-1], [t[0]+1,t[1]], [t[0]+1,t[1]+1]]
@@ -124,15 +171,28 @@ if __name__ == "__main__":
     matrix = generate_board(matrix)
     matrix[2][2] = "G"
     matrix[0][0] = "P"
+    matrix[9][9] = "W"
 
 
     Game = True
     player = Jack()
+    wumpus = Wumpus(9,9)
+    curr = "E"
 
     #Game loop
     while Game:
         for i in matrix:
             print(i)
         i = input()
-        matrix = player.move(i, matrix)
+        matrix, curr = player.Actions(i, matrix, curr)
+        matrix, curr = wumpus.Actions(i, matrix, curr)
+
+        print(player.gold)
+
+        if player.x == wumpus.x and player.y == wumpus.y:
+            Game = False
+            print("You lose!")
+        if player.x == 0 and player.y == 0 and player.gold == True:
+            Game = False
+            print("You win!")
 
