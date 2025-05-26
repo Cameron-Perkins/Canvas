@@ -1,6 +1,9 @@
 import random as rand
 import numpy as np
 
+# We want to make some improvements.
+# We want to fix the movement function there is an issue where I can only move down and anything north is a void
+
 size = 20  # Define the size of the square matrix
 matrix = [[0 for _ in range(size)] for _ in range(size)]
 
@@ -131,7 +134,7 @@ def generate_valid_tiles(t, previous_tiles=[]):
             tiles.remove(i)
     return tiles
 
-def add_tile_to_board(matirx, t):
+def add_tile_to_board(matrix, t):
     matrix[t[0]][t[1]] = "E"
     return matrix
 
@@ -141,7 +144,7 @@ def generate_board(matrix):
     while edge_tiles:
         # We will take a random tile from the edge tiles this will be put into previous tiles and in generate vaild tiles
         r = rand.randint(0,len(edge_tiles)-1)
-        e = edge_tiles[r]
+        e = edge_stiles[r]
         previous_tiles.append(e)
         # We will then generate a random number 1 through 8
         n = rand.randint(1,8)
