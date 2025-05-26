@@ -1,0 +1,83 @@
+# This is a modified version of the q learning tutorial which can be found at https://www.geeksforgeeks.org/q-learning-in-python/
+# I have modified to to find the best path through a maze.
+# Cameron Perkins
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def int_to_caridnal(n):
+    if n == 0:
+        return [1,0]
+    if n == 1:
+        return [-1,0]
+    if n == 2:
+        return [0,1]
+    if n == 3:
+        return [0,-1]
+    print('fail ', n)
+
+
+# Parameters
+n_states = 16  
+n_actions = 4 
+goal_state = [3,3]
+
+Q_table = np.zeros((n_states, n_actions))
+
+learning_rate = 0.8
+discount_factor = 0.95
+exploration_prob = 0.2
+epochs = 10000
+
+# Q-learning process
+for epoch in range(epochs):
+    current_state = [0,0]
+
+    while current_state != goal_state:
+        state_index = current_state[1] * 4 + current_state[0]
+        
+        # Exploration vs. Exploitation (ϵ-greedy policy)
+        if np.random.rand() < exploration_prob:
+            action = np.random.randint(0, n_actions)  
+        else:
+            action = np.argmax(Q_table[state_index])
+
+        i = int_to_caridnal(action)
+        # Transition to the next state (circular movement for simplicity)
+        next_x = max(0, min(current_state[0] + i[0], 3))
+        next_y = max(0, min(current_state[1] + i[1], 3))
+        next_state = [next_x, next_y]
+        # Reward function (1 if goal_state reached, 0 otherwise)
+        reward = 1 if next_state == goal_state else 0
+
+        # Flatten state
+        next_state_index = next_state[1] * 4 + next_state[0]
+        # Q-value update rule (TD update)
+        Q_table[state_index, action] += learning_rate * \
+            (reward + discount_factor * np.max(Q_table[next_state_index]) - Q_table[state_index, action])
+
+        current_state = next_state  # Update current state
+
+# Visualization of the Q-table in a grid format 
+q_values_grid = np.max(Q_table, axis=1).reshape((4, 4)) 
+
+# Plot the grid of Q-values
+plt.figure(figsize=(6, 6))
+plt.imshow(q_values_grid, cmap='coolwarm', interpolation='nearest')
+plt.colorbar(label='Q-value')
+plt.title('Learned Q-values for each state')
+plt.xticks(np.arange(4), ['0', '1', '2', '3'])
+plt.yticks(np.arange(4), ['0', '1', '2', '3'])
+plt.gca().invert_yaxis()  # To match grid layout
+plt.grid(True)
+
+# Annotating the Q-values on thein grid
+for i in range(4):
+    for j in range(4):
+        plt.text(j, i, f'{q_values_grid[i, j]:.2f}', ha='center', va='center', color='black')
+
+plt.show()
+
+# Print learned Q-table
+print("Learned Q-table:")
+print(Q_table)
